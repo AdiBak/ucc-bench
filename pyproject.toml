@@ -38,6 +38,6 @@ pyqpanda3 = [
 ]
 
 [tool.uv.sources]
-ucc = { git = "https://github.com/unitaryfoundation/ucc", rev = "0a2a2ee7f7c0fb869360659a06e2465db2076b90" }
+ucc = { git = "https://github.com/unitaryfoundation/ucc", rev = "02be8cb6ebd0b44ef7a12f95e67e30f10fa1bc81" }
 [project.scripts]
 ucc-bench = 'ucc_bench.main:main'
