@@ -88,7 +88,9 @@ def _insert(
         qargs = instruction.qubits
         if len(qargs) == 2:
             qubit_indices = [qc.find_bit(qarg).index for qarg in qargs]
-            two_qubit_gates.append({"index": idx, "qubits": qubit_indices, "gate": instr})
+            two_qubit_gates.append(
+                {"index": idx, "qubits": qubit_indices, "gate": instr}
+            )
 
     found_pair = False
     b1_idx = b1_qubits = b1_gate = shared_qubit = None
@@ -123,7 +125,9 @@ def _insert(
         )
 
     if not found_pair or b1_idx is None or b1_qubits is None:
-        warnings.warn("No suitable pair of two-qubit gates found. Skipping gate insertion.")
+        warnings.warn(
+            "No suitable pair of two-qubit gates found. Skipping gate insertion."
+        )
         return qc, None
 
     # Generate a random two-qubit unitary A and its adjoint A†
@@ -213,9 +217,9 @@ def _swap(qc: QuantumCircuit, b1_info: Dict[str, Any]) -> QuantumCircuit:
 
     # Compute \widetilde{A^\dagger}
     b1_operator_full_dagger = b1_operator_full.adjoint()
-    widetilde_a_dagger_operator = (
-        b1_operator_full_dagger.dot(a_dagger_operator_full).dot(b1_operator_full)
-    )
+    widetilde_a_dagger_operator = b1_operator_full_dagger.dot(
+        a_dagger_operator_full
+    ).dot(b1_operator_full)
 
     # Create UnitaryGate from \widetilde{A^\dagger}
     widetilde_a_dagger_gate = UnitaryGate(
@@ -264,4 +268,6 @@ def _decompose(qc: QuantumCircuit, method: str = "default") -> QuantumCircuit:
 
 def _synthesize(qc: QuantumCircuit, optimization_level: int = 3) -> QuantumCircuit:
     """Synthesize the circuit using Qiskit transpiler with a given optimization level."""
-    return qiskit_transpile(qc, optimization_level=optimization_level, basis_gates=["cx", "u3"])
+    return qiskit_transpile(
+        qc, optimization_level=optimization_level, basis_gates=["cx", "u3"]
+    )

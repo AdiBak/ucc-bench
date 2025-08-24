@@ -228,7 +228,9 @@ def run_suite(
                             benchmark,
                             target_device,
                             target_device_spec.id if target_device else None,
-                            suite.unoptimization if hasattr(suite, "unoptimization") else None,
+                            suite.unoptimization
+                            if hasattr(suite, "unoptimization")
+                            else None,
                         )
                     )
 

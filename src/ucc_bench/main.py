@@ -134,16 +134,19 @@ def main() -> None:
     suite = BenchmarkSuite.load_toml(args.spec_path)
 
     # Apply unoptimization CLI overrides onto the suite config
-    if any(
-        getattr(args, name) is not None
-        for name in [
-            "unopt_iterations",
-            "unopt_strategy",
-            "unopt_decomposition",
-            "unopt_opt_level",
-            "unopt_seed",
-        ]
-    ) or args.unopt:
+    if (
+        any(
+            getattr(args, name) is not None
+            for name in [
+                "unopt_iterations",
+                "unopt_strategy",
+                "unopt_decomposition",
+                "unopt_opt_level",
+                "unopt_seed",
+            ]
+        )
+        or args.unopt
+    ):
         if suite.unoptimization is None:
             suite.unoptimization = UnoptimizationSpec()
         # Enable if flag provided
