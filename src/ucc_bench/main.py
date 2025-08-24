@@ -7,7 +7,7 @@ import platform
 from pathlib import Path
 import psutil
 
-from ucc_bench.suite import BenchmarkSuite
+from ucc_bench.suite import BenchmarkSuite, UnoptimizationSpec
 from ucc_bench.runner import run_suite
 from ucc_bench.results import (
     SuiteResults,
@@ -86,6 +86,44 @@ def main() -> None:
         help="Timestamp of commit of UCC being tested. This is used to track the version of UCC being benchmarked.",
     )
 
+    # Unoptimization (Elementary Recipe) CLI overrides
+    parser.add_argument(
+        "--unopt",
+        action="store_true",
+        help="Enable quantum circuit unoptimization (elementary recipe) prior to compilation.",
+    )
+    parser.add_argument(
+        "--unopt-iterations",
+        type=int,
+        help="Number of unoptimization iterations to apply.",
+    )
+    parser.add_argument(
+        "--unopt-strategy",
+        choices=["concatenated", "random"],
+        help="Strategy used to select insertion points for unoptimization.",
+    )
+    parser.add_argument(
+        "--unopt-decomposition",
+        choices=["default", "kak", "basis"],
+        help="Decomposition method for unitary synthesis during unoptimization.",
+    )
+    parser.add_argument(
+        "--unopt-opt-level",
+        type=int,
+        choices=[0, 1, 2, 3],
+        help="Qiskit optimization level for the final synthesis step during unoptimization.",
+    )
+    parser.add_argument(
+        "--unopt-seed",
+        type=int,
+        help="Random seed for deterministic unoptimization.",
+    )
+    parser.add_argument(
+        "--unopt-skip-synth",
+        action="store_true",
+        help="Skip the final Qiskit synthesis step during unoptimization.",
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -94,6 +132,35 @@ def main() -> None:
     )
 
     suite = BenchmarkSuite.load_toml(args.spec_path)
+
+    # Apply unoptimization CLI overrides onto the suite config
+    if any(
+        getattr(args, name) is not None
+        for name in [
+            "unopt_iterations",
+            "unopt_strategy",
+            "unopt_decomposition",
+            "unopt_opt_level",
+            "unopt_seed",
+        ]
+    ) or args.unopt:
+        if suite.unoptimization is None:
+            suite.unoptimization = UnoptimizationSpec()
+        # Enable if flag provided
+        if args.unopt:
+            suite.unoptimization.enabled = True
+        if args.unopt_iterations is not None:
+            suite.unoptimization.iterations = args.unopt_iterations
+        if args.unopt_strategy is not None:
+            suite.unoptimization.strategy = args.unopt_strategy  # type: ignore[assignment]
+        if args.unopt_decomposition is not None:
+            suite.unoptimization.decomposition_method = args.unopt_decomposition  # type: ignore[assignment]
+        if args.unopt_opt_level is not None:
+            suite.unoptimization.optimization_level = args.unopt_opt_level
+        if args.unopt_seed is not None:
+            suite.unoptimization.seed = args.unopt_seed
+        if args.unopt_skip_synth:
+            suite.unoptimization.skip_synthesize = True
 
     run_start = datetime.now()
     num_parallel = (

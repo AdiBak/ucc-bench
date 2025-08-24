@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Optional
 from qbraid import transpile
 from qiskit.transpiler import Target
+from qiskit import QuantumCircuit
 
 # Define a generic type variable for a circuit, that concrete implementations
 # will define for each library type
@@ -48,6 +49,15 @@ class BaseCompiler(ABC, Generic[CircuitType]):
         Convert a native circuit to a QASM string
         """
         return transpile(circuit, "qasm2")
+
+    def from_qiskit_to_native(self, circuit: QuantumCircuit) -> CircuitType:
+        """
+        Convert a Qiskit QuantumCircuit into this compiler's native circuit type.
+
+        Default behavior uses qbraid.transpile with a target matching the compiler id.
+        Compilers whose qbraid target differs from the registered id should override.
+        """
+        return transpile(circuit, self.id())
 
     @abstractmethod
     def compile(

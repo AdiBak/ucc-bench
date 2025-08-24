@@ -3,7 +3,7 @@ from datetime import datetime
 import logging
 from logging import LoggerAdapter
 from concurrent.futures import ProcessPoolExecutor
-from .suite import BenchmarkSuite, BenchmarkSpec
+from .suite import BenchmarkSuite, BenchmarkSpec, UnoptimizationSpec
 from .compilers import BaseCompiler
 from .results import BenchmarkResult, CompilerInfo, CompilationMetrics
 from .registry import register
@@ -14,6 +14,9 @@ from time import perf_counter, process_time
 import multiprocessing
 from qiskit.transpiler import Target
 from .utils import validate_circuit_gates
+from typing import Optional
+from qiskit import QuantumCircuit
+from .unoptimization import unoptimize_circuit
 
 # module-level logger that can be used before dispatching to worker processes
 logger = logging.getLogger(__name__)
@@ -24,6 +27,7 @@ def run_task(
     benchmark: BenchmarkSpec,
     target_device: Optional[Target] = None,
     target_device_id: Optional[str] = None,
+    unopt_spec: Optional["UnoptimizationSpec"] = None,
 ) -> BenchmarkResult:
     """
     Run a single benchmark against the given compiler.
@@ -55,6 +59,23 @@ def run_task(
     raw_circuit = compiler.qasm_to_native(
         open(benchmark.resolved_qasm_file, "r").read()
     )
+
+    # Optionally apply unoptimization (elementary recipe) in Qiskit domain and convert back
+    if unopt_spec and getattr(unopt_spec, "enabled", False):
+        logger.info(
+            f"Applying unoptimization: iterations={unopt_spec.iterations}, strategy={unopt_spec.strategy}, decomposition={unopt_spec.decomposition_method}"
+        )
+        qiskit_raw: QuantumCircuit = transpile(raw_circuit, "qiskit")
+        qiskit_unopt = unoptimize_circuit(
+            qiskit_raw,
+            iterations=unopt_spec.iterations,
+            strategy=unopt_spec.strategy,
+            decomposition_method=unopt_spec.decomposition_method,
+            optimization_level=unopt_spec.optimization_level,
+            seed=getattr(unopt_spec, "seed", None),
+            synthesize=not getattr(unopt_spec, "skip_synthesize", False),
+        )
+        raw_circuit = compiler.from_qiskit_to_native(qiskit_unopt)
     end_transpile = datetime.now()
     logger.info(
         f"Finished transpiling. Duration: {(end_transpile - start_transpile).total_seconds()} seconds."
@@ -208,6 +229,7 @@ def run_suite(
                             benchmark,
                             target_device,
                             target_device_spec.id if target_device else None,
+                            suite.unoptimization if hasattr(suite, "unoptimization") else None,
                         )
                     )
 

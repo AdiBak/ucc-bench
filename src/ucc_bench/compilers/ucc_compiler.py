@@ -25,6 +25,10 @@ class UCCCompiler(BaseCompiler[QuantumCircuit]):
         # Need to manually specifiy since id != "qiskit"
         return transpile(qasm, "qiskit")
 
+    def from_qiskit_to_native(self, circuit: QuantumCircuit) -> QuantumCircuit:
+        # UCC native is Qiskit
+        return circuit
+
     def compile(
         self, circuit: QuantumCircuit, target_device: Optional[Target] = None
     ) -> QuantumCircuit:
