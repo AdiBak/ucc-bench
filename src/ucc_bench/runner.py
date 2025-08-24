@@ -14,7 +14,6 @@ from time import perf_counter, process_time
 import multiprocessing
 from qiskit.transpiler import Target
 from .utils import validate_circuit_gates
-from typing import Optional
 from qiskit import QuantumCircuit
 from .unoptimization import unoptimize_circuit
 
