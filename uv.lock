@@ -1735,7 +1735,7 @@ wheels = [
 [[package]]
 name = "ucc"
 version = "0.4.9"
-source = { git = "https://github.com/unitaryfoundation/ucc?rev=d49ecfc60e4926b42fcd5386f1b915245c35d8e1#d49ecfc60e4926b42fcd5386f1b915245c35d8e1" }
+source = { git = "https://github.com/unitaryfoundation/ucc?rev=054369d919d279456fab7b5eda1aef1d5619ee3f#054369d919d279456fab7b5eda1aef1d5619ee3f" }
 dependencies = [
     { name = "cirq-core" },
     { name = "ply" },
@@ -1790,7 +1790,7 @@ requires-dist = [
     { name = "qiskit-ibm-runtime", specifier = ">=0.40.1" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "tabulate", specifier = ">=0.9.0" },
-    { name = "ucc", git = "https://github.com/unitaryfoundation/ucc?rev=d49ecfc60e4926b42fcd5386f1b915245c35d8e1" },
+    { name = "ucc", git = "https://github.com/unitaryfoundation/ucc?rev=054369d919d279456fab7b5eda1aef1d5619ee3f" },
 ]
 
 [package.metadata.requires-dev]
