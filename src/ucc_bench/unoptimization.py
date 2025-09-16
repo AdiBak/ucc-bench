@@ -157,7 +157,7 @@ def _insert(
 
     # Insert A†, A on qubits [shared_qubit, third_qubit]
     qubits_for_a = [qubit_map[shared_qubit], qubit_map[third_qubit]]
-    new_qc.unitary(a_dag, qubits_for_a, label=r"$A^{\dagger}$")
+    new_qc.unitary(a_dag, qubits_for_a, label="A_dag")
     new_qc.unitary(a, qubits_for_a, label="A")
 
     # Copy the remaining gates

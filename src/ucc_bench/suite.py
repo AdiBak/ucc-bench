@@ -2,7 +2,7 @@ import tomllib
 from pathlib import Path
 from pydantic import BaseModel
 from pydantic import Field, model_validator, field_validator
-from typing import List, Optional, Literal
+from typing import List, Optional
 
 from .registry import register
 
@@ -93,7 +93,6 @@ class BenchmarkSuite(BaseModel):
     compilers: List[CompilerSpec] = Field(default_factory=list)
     benchmarks: List[BenchmarkSpec] = Field(default_factory=list)
     target_devices: List[TargetDeviceSpec] = Field(default_factory=list)
-    unoptimization: Optional["UnoptimizationSpec"] = None
 
     @classmethod
     def load_toml(cls, path: str) -> "BenchmarkSuite":
@@ -132,14 +131,3 @@ class BenchmarkSuite(BaseModel):
                 )
         return self
 
-
-class UnoptimizationSpec(BaseModel):
-    """Configuration for quantum circuit unoptimization (elementary recipe)."""
-
-    enabled: bool = False
-    iterations: int = 1
-    strategy: Literal["concatenated", "random"] = "concatenated"
-    decomposition_method: Literal["default", "kak", "basis"] = "default"
-    optimization_level: int = 3
-    seed: Optional[int] = None
-    skip_synthesize: bool = False
