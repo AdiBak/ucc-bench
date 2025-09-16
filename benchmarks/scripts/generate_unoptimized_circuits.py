@@ -47,15 +47,11 @@ TASKS: Iterable[CircuitTask] = (
         target=UNOPT_ROOT / "qaoa_barabasi_albert_N100_3reps_unopt.qasm",
     ),
     CircuitTask(
-        source=CIRCUIT_ROOT
-        / "benchpress"
-        / "qv_N100_12345_basis_rz_rx_ry_cx.qasm",
+        source=CIRCUIT_ROOT / "benchpress" / "qv_N100_12345_basis_rz_rx_ry_cx.qasm",
         target=UNOPT_ROOT / "qv_N100_12345_unopt.qasm",
     ),
     CircuitTask(
-        source=CIRCUIT_ROOT
-        / "benchpress"
-        / "qft_N100_basis_rz_rx_ry_cx.qasm",
+        source=CIRCUIT_ROOT / "benchpress" / "qft_N100_basis_rz_rx_ry_cx.qasm",
         target=UNOPT_ROOT / "qft_N100_unopt.qasm",
     ),
     CircuitTask(
@@ -65,15 +61,11 @@ TASKS: Iterable[CircuitTask] = (
         target=UNOPT_ROOT / "square_heisenberg_N100_unopt.qasm",
     ),
     CircuitTask(
-        source=CIRCUIT_ROOT
-        / "ucc"
-        / "prep_select_N25_ghz_basis_rz_rx_ry_h_cx.qasm",
+        source=CIRCUIT_ROOT / "ucc" / "prep_select_N25_ghz_basis_rz_rx_ry_h_cx.qasm",
         target=UNOPT_ROOT / "prep_select_N25_ghz_unopt.qasm",
     ),
     CircuitTask(
-        source=CIRCUIT_ROOT
-        / "ucc"
-        / "qcnn_N100_7layers_basis_rz_rx_ry_h_cx.qasm",
+        source=CIRCUIT_ROOT / "ucc" / "qcnn_N100_7layers_basis_rz_rx_ry_h_cx.qasm",
         target=UNOPT_ROOT / "qcnn_N100_7layers_unopt.qasm",
     ),
 )
@@ -88,12 +80,12 @@ def generate() -> None:
             "// Elementary unoptimization applied to "
             f"{task.source.relative_to(REPO_ROOT)}\n"
         )
-        header += (
-            "// iterations={iterations}, strategy={strategy}, decomposition={decomposition_method}, opt_level={optimization_level}, seed={seed}\n".format(
-                **UNOPT_KWARGS
-            )
+        header += "// iterations={iterations}, strategy={strategy}, decomposition={decomposition_method}, opt_level={optimization_level}, seed={seed}\n".format(
+            **UNOPT_KWARGS
         )
-        header += "// Generated via benchmarks/scripts/generate_unoptimized_circuits.py\n"
+        header += (
+            "// Generated via benchmarks/scripts/generate_unoptimized_circuits.py\n"
+        )
         qasm_body = qasm2.dumps(unopt_circuit)
         task.target.write_text(header + qasm_body)
         print(

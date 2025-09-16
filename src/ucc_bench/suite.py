@@ -130,4 +130,3 @@ class BenchmarkSuite(BaseModel):
                     f"qasm_file for benchmark '{benchmark.id}' does not point to a valid file: {benchmark.resolved_qasm_file}"
                 )
         return self
-
