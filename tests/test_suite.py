@@ -1,4 +1,5 @@
 import pytest
+import re
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from ucc_bench.suite import (
@@ -87,9 +88,13 @@ def test_validate_invalid_qasm_file_path():
 
         resolved_path = temp_path / "nonexistent.qasm"
 
+        expected = re.escape(
+            f"qasm_file for benchmark 'bench1' does not point to a valid file: {resolved_path}"
+        )
+
         with pytest.raises(
             ValueError,
-            match=f"qasm_file for benchmark 'bench1' does not point to a valid file: {resolved_path}",
+            match=expected,
         ):
             BenchmarkSuite(
                 spec_path=temp_path / "suite.toml",
