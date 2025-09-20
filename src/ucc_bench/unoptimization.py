@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import random
 import warnings
-from typing import Any, Optional, Dict, List
+from typing import Any, Optional, Dict, List, Literal
 
 import numpy as np
 from qiskit import QuantumCircuit, transpile as qiskit_transpile
@@ -26,8 +26,8 @@ from qiskit.transpiler.passes import (
 def unoptimize_circuit(
     qc: QuantumCircuit,
     iterations: int = 1,
-    strategy: str = "concatenated",
-    decomposition_method: str = "default",
+    strategy: Literal["concatenated", "random"] = "concatenated",
+    decomposition_method: Literal["default", "kak", "basis"] = "default",
     optimization_level: int = 3,
     seed: Optional[int] = None,
     synthesize: bool = True,
