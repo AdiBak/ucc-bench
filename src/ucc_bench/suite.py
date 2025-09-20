@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 try:
     from pydantic import model_validator, field_validator
+
     PYDANTIC_V2 = True
 except ImportError:  # pragma: no cover - compatibility with Pydantic v1
     from pydantic import root_validator, validator  # type: ignore
@@ -25,8 +26,11 @@ except ImportError:  # pragma: no cover - compatibility with Pydantic v1
         allow_reuse = kwargs.pop("allow_reuse", True)
         pre = mode == "before"
         if kwargs:
-            raise TypeError(f"Unsupported kwargs for field_validator fallback: {kwargs}")
+            raise TypeError(
+                f"Unsupported kwargs for field_validator fallback: {kwargs}"
+            )
         return validator(*fields, pre=pre, allow_reuse=allow_reuse)
+
 
 from .registry import register
 

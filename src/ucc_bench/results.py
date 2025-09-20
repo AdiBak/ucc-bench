@@ -6,6 +6,7 @@ from collections import defaultdict
 
 try:
     from pydantic import BaseModel, computed_field
+
     HAS_COMPUTED_FIELD = True
 except ImportError:  # pragma: no cover - support older Pydantic versions
     from pydantic import BaseModel  # type: ignore
@@ -19,6 +20,7 @@ except ImportError:  # pragma: no cover - support older Pydantic versions
             return property(func)
 
         return decorator
+
 
 from .suite import BenchmarkSuite
 import pandas as pd
@@ -89,6 +91,7 @@ class BenchmarkResult(BaseModel):
 if HAS_COMPUTED_FIELD:
     _cached_field = cached_property
 else:  # pragma: no cover - executed only when computed_field is unavailable
+
     def _cached_field(func):
         return func
 
