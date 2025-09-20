@@ -31,10 +31,6 @@ class PytketPeepCompiler(BaseCompiler[PytketCircuit]):
         # Specify since pytket id != "pytket"
         return transpile(qasm, "pytket")
 
-    def from_qiskit_to_native(self, circuit: QuantumCircuit) -> PytketCircuit:
-        # qbraid target for pytket is "pytket"
-        return transpile(circuit, "pytket")
-
     def compile(
         self, circuit: PytketCircuit, target_device: Optional[Target] = None
     ) -> PytketCircuit:

@@ -27,10 +27,6 @@ class QiskitCompiler(BaseCompiler[QuantumCircuit]):
         # Specify since we have -default suffix
         return transpile(qasm, "qiskit")
 
-    def from_qiskit_to_native(self, circuit: QuantumCircuit) -> QuantumCircuit:
-        # Already native
-        return circuit
-
     def compile(
         self, circuit: QuantumCircuit, target_device: Optional[Target] = None
     ) -> QuantumCircuit:

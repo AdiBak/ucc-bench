@@ -38,17 +38,6 @@ if PYQPANDA3_AVAILABLE:
             # Not supported by qbraid yet
             return convert_qasm_string_to_qprog(qasm)
 
-        # Convert from Qiskit circuit by going through QASM
-        def from_qiskit_to_native(self, circuit):  # type: ignore[override]
-            try:
-                qasm_str = circuit.qasm()
-            except Exception:
-                # Fall back to qbraid conversion to qasm2 if available
-                from qbraid import transpile as qb_transpile
-
-                qasm_str = qb_transpile(circuit, "qasm2")
-            return convert_qasm_string_to_qprog(qasm_str)
-
         def native_to_qasm(self, circuit: QProg) -> str:
             return convert_qprog_to_qasm(circuit)
 
