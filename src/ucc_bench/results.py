@@ -1,11 +1,27 @@
-from pydantic import BaseModel, computed_field
 from functools import cached_property
 from typing import List, Optional
 from datetime import datetime
 from pathlib import Path
+from collections import defaultdict
+
+try:
+    from pydantic import BaseModel, computed_field
+    HAS_COMPUTED_FIELD = True
+except ImportError:  # pragma: no cover - support older Pydantic versions
+    from pydantic import BaseModel  # type: ignore
+
+    HAS_COMPUTED_FIELD = False
+
+    def computed_field(*args, **kwargs):  # type: ignore
+        """Fallback decorator that exposes the attribute as a property."""
+
+        def decorator(func):
+            return property(func)
+
+        return decorator
+
 from .suite import BenchmarkSuite
 import pandas as pd
-from collections import defaultdict
 
 
 class RunnerSpecs(BaseModel):
@@ -70,13 +86,20 @@ class BenchmarkResult(BaseModel):
     target_device_id: Optional[str] = None
 
 
+if HAS_COMPUTED_FIELD:
+    _cached_field = cached_property
+else:  # pragma: no cover - executed only when computed_field is unavailable
+    def _cached_field(func):
+        return func
+
+
 class SuiteResults(BaseModel):
     suite_specification: BenchmarkSuite
     metadata: Metadata
     results: List[BenchmarkResult]
 
     @computed_field(repr=False)
-    @cached_property
+    @_cached_field
     def compiler_versions(self) -> dict[str, str]:
         """Return a map of compiler id to version used in this benchmark run"""
 
