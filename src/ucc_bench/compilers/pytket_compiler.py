@@ -12,7 +12,6 @@ from qbraid import transpile
 from ..registry import register
 from typing import Optional
 from qiskit.transpiler import Target
-from qiskit import QuantumCircuit
 
 
 @register.compiler("pytket-peep")
