@@ -21,7 +21,6 @@ dependencies = [
     "adjusttext>=1.3.0",
     "qiskit-ibm-runtime>=0.40.1",
     "seaborn>=0.13.2",
-    "ucc-bench",
 ]
 
 [build-system]
@@ -39,7 +38,6 @@ pyqpanda3 = [
 ]
 
 [tool.uv.sources]
-ucc = { git = "https://github.com/unitaryfoundation/ucc", rev = "929258285a8410cecf2a053f6b1040921f830430" }
-ucc-bench = { workspace = true }
+ucc = { git = "https://github.com/unitaryfoundation/ucc", rev = "25dec66dda535af5a8577c76061202c955c3b4f1" }
 [project.scripts]
 ucc-bench = 'ucc_bench.main:main'
