@@ -37,7 +37,6 @@ def estimate_heavy_output_prob(
     heavy_bitstrings = get_heavy_bitstrings(circuit)
     simulator = AerSimulator(
         method="statevector",
-        noise_model=noise_model,
         max_parallel_threads=1,
     )
     result = simulator.run(circuit, shots=NUM_SHOTS).result()
