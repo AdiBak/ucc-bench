@@ -24,8 +24,9 @@ from ..results import SimulationMetrics
 
 def simulate_density_matrix(circuit: QuantumCircuit, simulator: AerSimulator):
     """Simulates the given quantum circuit using a density matrix simulator using the passed simulator and returns the density matrix."""
+    print(simulator.properties)
     # Check the simulator is a density matrix simulator
-    if simulator.method != "density_matrix":
+    if simulator.name != "aer_simulator_density_matrix":
         raise ValueError("Simulator must be a density matrix simulator")
 
     return simulator.run(circuit).result().data()["density_matrix"]
