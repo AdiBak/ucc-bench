@@ -41,3 +41,6 @@ pyqpanda3 = [
 ucc = { git = "https://github.com/unitaryfoundation/ucc", rev = "d838afd442849238882bf94984ad8884fb701784" }
 [project.scripts]
 ucc-bench = 'ucc_bench.main:main'
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
