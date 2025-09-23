@@ -79,7 +79,7 @@ def plot_relative_error(csv_path):
     ncols = 3
     nrows = int(np.ceil(n_benchmarks / ncols))
     # Compute relative error: (compiled_noisy - uncompiled_ideal) / uncompiled_ideal
-    df["relative_error"] = (df["compiled_noisy"] - df["uncompiled_ideal"]) / df[
+    df["relative_error"] = (df["uncompiled_ideal"] - df["compiled_noisy"]) / df[
         "uncompiled_ideal"
     ]
 
