@@ -115,10 +115,7 @@ def plot_relative_error(csv_path):
     plt.show()
 
 
-# plot_relative_error(
-#     "/Users/jordansullivan/UnitaryFoundation/ucc-bench/.local_results/Jordans-MacBook-Pro.local/simulation_benchmarks/20250922/20250922175509.18cc536c-7100-4fd9-8900-ecb19deb5eb0.simulation.csv"
-# )
+filename = "/Users/jordansullivan/UnitaryFoundation/ucc-bench/.local_results/Jordans-MacBook-Pro.local/simulation_benchmarks/20250923/20250923131604.65e3ab95-68c6-42b7-8e84-1725f5b79ca7.simulation.csv"
 
-plot_compiled_metrics(
-    "/Users/jordansullivan/UnitaryFoundation/ucc-bench/.local_results/Jordans-MacBook-Pro.local/simulation_benchmarks/20250922/20250922175509.18cc536c-7100-4fd9-8900-ecb19deb5eb0.simulation.csv"
-)
+plot_relative_error(filename)
+# plot_compiled_metrics(filename)
