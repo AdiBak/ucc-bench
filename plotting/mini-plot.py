@@ -23,47 +23,46 @@ def plot_compiled_metrics(csv_path):
     # Use shared colormap for compilers
     compiler_colors = get_compiler_colormap()
 
-    for i, benchmark in enumerate(benchmarks):
-        ax = axes[i]
-        sub = df[df["benchmark_id"] == benchmark]
-        bars_ideal = []
-        bars_noisy = []
-        for compiler in compilers:
-            row = sub[sub["compiler"] == compiler]
-            bars_ideal.append(
-                row["compiled_ideal"].values[0] if not row.empty else np.nan
-            )
-            bars_noisy.append(
-                row["compiled_noisy"].values[0] if not row.empty else np.nan
-            )
-        # Plot compiled_ideal and compiled_noisy side by side for each compiler, color-coded
-        for j, compiler in enumerate(compilers):
-            ax.bar(
-                j - bar_width / 2,
-                bars_ideal[j],
-                bar_width,
-                label="compiled_ideal" if j == 0 else "",
-                color=compiler_colors.get(compiler, "#4C72B0"),
-                alpha=0.7,
-            )
-            ax.bar(
-                j + bar_width / 2,
-                bars_noisy[j],
-                bar_width,
-                label="compiled_noisy" if j == 0 else "",
-                color=compiler_colors.get(compiler, "#4C72B0"),
-                alpha=1.0,
-                hatch="//",
-            )
-        ax.set_xticks(index)
-        ax.set_xticklabels(compilers, rotation=30)
-        ax.set_title(f"Benchmark: {benchmark}")
-        ax.set_ylabel("Value")
-        if i == 0:
-            ax.legend()
-    # Hide unused subplots
-    for j in range(n_benchmarks, nrows * ncols):
-        fig.delaxes(axes[j])
+    for i, ax in enumerate(axes):
+        if i < n_benchmarks:
+            benchmark = benchmarks[i]
+            sub = df[df["benchmark_id"] == benchmark]
+            bars_ideal = []
+            bars_noisy = []
+            for compiler in compilers:
+                row = sub[sub["compiler"] == compiler]
+                bars_ideal.append(
+                    row["compiled_ideal"].values[0] if not row.empty else np.nan
+                )
+                bars_noisy.append(
+                    row["compiled_noisy"].values[0] if not row.empty else np.nan
+                )
+            for j, compiler in enumerate(compilers):
+                ax.bar(
+                    j - bar_width / 2,
+                    bars_ideal[j],
+                    bar_width,
+                    label="compiled_ideal" if j == 0 else "",
+                    color=compiler_colors.get(compiler, "#4C72B0"),
+                    alpha=0.7,
+                )
+                ax.bar(
+                    j + bar_width / 2,
+                    bars_noisy[j],
+                    bar_width,
+                    label="compiled_noisy" if j == 0 else "",
+                    color=compiler_colors.get(compiler, "#4C72B0"),
+                    alpha=1.0,
+                    hatch="//",
+                )
+            ax.set_xticks(index)
+            ax.set_xticklabels(compilers, rotation=30)
+            ax.set_title(f"Benchmark: {benchmark}")
+            ax.set_ylabel("Value")
+            if i == 0:
+                ax.legend()
+        else:
+            ax.set_title("")
     plt.tight_layout()
     plt.show()
 
@@ -88,32 +87,38 @@ def plot_relative_error(csv_path):
     index = np.arange(len(compilers))
     compiler_colors = get_compiler_colormap()
 
-    for i, benchmark in enumerate(benchmarks):
-        ax = axes[i]
-        sub = df[df["benchmark_id"] == benchmark]
-        rel_errs = []
-        for j, compiler in enumerate(compilers):
-            row = sub[sub["compiler"] == compiler]
-            rel_errs.append(
-                row["relative_error"].values[0] if not row.empty else np.nan
-            )
-            ax.bar(
-                j,
-                rel_errs[-1],
-                color=compiler_colors.get(compiler, "#4C72B0"),
-                width=0.5,
-            )
-        ax.set_xticks(index)
-        ax.set_xticklabels(compilers, rotation=30)
-        ax.set_ylabel("Relative Error")
-        ax.axhline(0, color="black", linewidth=0.8, linestyle="--")
-    # Hide unused subplots
-    for j in range(n_benchmarks, nrows * ncols):
-        fig.delaxes(axes[j])
-    plt.tight_layout()
+    for i, ax in enumerate(axes):
+        if i < n_benchmarks:
+            benchmark = benchmarks[i]
+            sub = df[df["benchmark_id"] == benchmark]
+            rel_errs = []
+            for j, compiler in enumerate(compilers):
+                row = sub[sub["compiler"] == compiler]
+                rel_errs.append(
+                    row["relative_error"].values[0] if not row.empty else np.nan
+                )
+                ax.bar(
+                    j,
+                    rel_errs[-1],
+                    color=compiler_colors.get(compiler, "#4C72B0"),
+                    width=0.5,
+                )
+            ax.set_xticks(index)
+            ax.set_xticklabels(compilers, rotation=30)
+            ax.set_title(f"Benchmark: {benchmark}")
+            ax.set_ylabel("Relative Error")
+            ax.axhline(0, color="black", linewidth=0.8, linestyle="--")
+        else:
+            ax.set_title("")
+    plt.suptitle("Relative Error", fontsize=16)
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.show()
 
 
-plot_relative_error(
+# plot_relative_error(
+#     "/Users/jordansullivan/UnitaryFoundation/ucc-bench/.local_results/Jordans-MacBook-Pro.local/simulation_benchmarks/20250922/20250922175509.18cc536c-7100-4fd9-8900-ecb19deb5eb0.simulation.csv"
+# )
+
+plot_compiled_metrics(
     "/Users/jordansullivan/UnitaryFoundation/ucc-bench/.local_results/Jordans-MacBook-Pro.local/simulation_benchmarks/20250922/20250922175509.18cc536c-7100-4fd9-8900-ecb19deb5eb0.simulation.csv"
 )
