@@ -4,22 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
 
-try:
-    from pydantic import BaseModel, computed_field
-
-    HAS_COMPUTED_FIELD = True
-except ImportError:  # pragma: no cover - support older Pydantic versions
-    from pydantic import BaseModel  # type: ignore
-
-    HAS_COMPUTED_FIELD = False
-
-    def computed_field(*args, **kwargs):  # type: ignore
-        """Fallback decorator that exposes the attribute as a property."""
-
-        def decorator(func):
-            return property(func)
-
-        return decorator
+from pydantic import BaseModel, computed_field
 
 
 from .suite import BenchmarkSuite
@@ -88,21 +73,13 @@ class BenchmarkResult(BaseModel):
     target_device_id: Optional[str] = None
 
 
-if HAS_COMPUTED_FIELD:
-    _cached_field = cached_property
-else:  # pragma: no cover - executed only when computed_field is unavailable
-
-    def _cached_field(func):
-        return func
-
-
 class SuiteResults(BaseModel):
     suite_specification: BenchmarkSuite
     metadata: Metadata
     results: List[BenchmarkResult]
 
     @computed_field(repr=False)
-    @_cached_field
+    @cached_property
     def compiler_versions(self) -> dict[str, str]:
         """Return a map of compiler id to version used in this benchmark run"""
 
