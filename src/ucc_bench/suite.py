@@ -2,34 +2,7 @@ import tomllib
 from pathlib import Path
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
-
-try:
-    from pydantic import model_validator, field_validator
-
-    PYDANTIC_V2 = True
-except ImportError:  # pragma: no cover - compatibility with Pydantic v1
-    from pydantic import root_validator, validator  # type: ignore
-
-    PYDANTIC_V2 = False
-
-    def model_validator(*args, **kwargs):  # type: ignore
-        """Fallback decorator that becomes a no-op under Pydantic v1."""
-
-        def decorator(func):
-            return func
-
-        return decorator
-
-    def field_validator(*fields, **kwargs):  # type: ignore
-        mode = kwargs.pop("mode", "after")
-        allow_reuse = kwargs.pop("allow_reuse", True)
-        pre = mode == "before"
-        if kwargs:
-            raise TypeError(
-                f"Unsupported kwargs for field_validator fallback: {kwargs}"
-            )
-        return validator(*fields, pre=pre, allow_reuse=allow_reuse)
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 from .registry import register
@@ -183,25 +156,3 @@ class BenchmarkSuite(BaseModel):
                     f"'{benchmark.id}' does not point to a valid file: {benchmark.resolved_qasm_file}"
                 )
 
-    if not PYDANTIC_V2:
-
-        @root_validator(pre=False, allow_reuse=True)  # type: ignore[misc]
-        def _post_init_checks_v1(cls, values):
-            benchmarks = values.get("benchmarks", [])
-            compilers = values.get("compilers", [])
-            target_devices = values.get("target_devices", [])
-            spec_path = values.get("spec_path")
-
-            cls._ensure_unique_ids_core(
-                benchmarks=benchmarks,
-                compilers=compilers,
-                target_devices=target_devices,
-            )
-
-            if spec_path is not None:
-                cls._canonicalize_and_validate_qasm_paths_core(
-                    spec_path=spec_path,
-                    benchmarks=benchmarks,
-                )
-
-            return values
