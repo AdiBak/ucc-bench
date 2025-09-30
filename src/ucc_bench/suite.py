@@ -2,7 +2,8 @@ import tomllib
 from pathlib import Path
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel
+from pydantic import Field, model_validator, field_validator
 
 
 from .registry import register
@@ -104,54 +105,28 @@ class BenchmarkSuite(BaseModel):
             return BenchmarkSuite.model_validate(raw)
 
     @model_validator(mode="after")
-    def _post_init_checks(self):
-        """Run data integrity checks after model construction."""
-        self._ensure_unique_ids()
-        self._canonicalize_and_validate_qasm_paths()
+    def check_ids_unique(self):
+        """Check that ids are unique for compilers, benchmarks, and target_devices."""
+        for field in ["benchmarks", "compilers", "target_devices"]:
+            items = getattr(self, field, [])
+            set_ids = set()
+            for item in items:
+                if item.id in set_ids:
+                    raise ValueError(f"Duplicate {field[:-1]} id: {item.id}")
+                set_ids.add(item.id)
         return self
 
-    def _ensure_unique_ids(self) -> None:
-        """Ensure ids are unique for compilers, benchmarks, and target devices."""
-        self.__class__._ensure_unique_ids_core(
-            benchmarks=self.benchmarks,
-            compilers=self.compilers,
-            target_devices=self.target_devices,
-        )
-
-    def _canonicalize_and_validate_qasm_paths(self) -> None:
-        """Resolve benchmark QASM paths relative to the suite specification path."""
-        self.__class__._canonicalize_and_validate_qasm_paths_core(
-            spec_path=self.spec_path,
-            benchmarks=self.benchmarks,
-        )
-
-    @staticmethod
-    def _ensure_unique_ids_core(
-        *,
-        benchmarks: List[BenchmarkSpec],
-        compilers: List[CompilerSpec],
-        target_devices: List[TargetDeviceSpec],
-    ) -> None:
-        for field_name, items in (
-            ("benchmarks", benchmarks),
-            ("compilers", compilers),
-            ("target_devices", target_devices),
-        ):
-            seen = set()
-            for item in items:
-                if item.id in seen:
-                    raise ValueError(f"Duplicate {field_name[:-1]} id: {item.id}")
-                seen.add(item.id)
-
-    @staticmethod
-    def _canonicalize_and_validate_qasm_paths_core(
-        *, spec_path: Path, benchmarks: List[BenchmarkSpec]
-    ) -> None:
-        for benchmark in benchmarks:
+    @model_validator(mode="after")
+    def canonicalize_and_validate_qasm_paths(self):
+        """Ensure all qasm_file paths are valid and relative to spec_path."""
+        for benchmark in self.benchmarks:
             if benchmark.resolved_qasm_file is None:
-                benchmark.resolved_qasm_file = spec_path.parent / benchmark.qasm_file
+                benchmark.resolved_qasm_file = (
+                    self.spec_path.parent / benchmark.qasm_file
+                )
             if not benchmark.resolved_qasm_file.is_file():
                 raise ValueError(
                     "qasm_file for benchmark "
                     f"'{benchmark.id}' does not point to a valid file: {benchmark.resolved_qasm_file}"
                 )
+        return self
