@@ -3,21 +3,22 @@ from pathlib import Path
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 from ucc_bench.results import SuiteResultsDatabase, to_df_timing, to_df_simulation
 
 from shared import calculate_abs_relative_error, get_compiler_colormap
 
-BAR_WIDTH = 0.2
+BAR_WIDTH = 0.35
 
 
-def generate_plot(
+def generate_compilation_subplots(
     df: pd.DataFrame,
     plot_configs: list[dict],
     latest_date: str,
     out_path: Path,
     use_pdf: bool = False,
 ):
-    """Generic plotting function to create bar charts for benchmark data."""
+    """Generate subplots for compilation benchmarks with separate subplot per benchmark."""
     # Configure matplotlib for LaTeX output if PDF export is requested
     if use_pdf:
         plt.rcParams.update(
@@ -27,49 +28,67 @@ def generate_plot(
             }
         )
 
-    circuit_names = sorted(df["benchmark_id"].unique())
-    x_positions = range(len(circuit_names))
-    circuit_name_to_index = {name: i for i, name in enumerate(circuit_names)}
-    color_map = get_compiler_colormap()
-
-    num_plots = len(plot_configs)
-    fig, axes = plt.subplots(1, num_plots, figsize=(7 * num_plots, 7), squeeze=False)
-    axes = axes.flatten()
-
+    benchmarks = sorted(df["benchmark_id"].unique())
     compilers = df["compiler"].unique()
-    for i, compiler_name in enumerate(compilers):
-        grp = df[df["compiler"] == compiler_name]
-        grp_indices = grp["benchmark_id"].map(circuit_name_to_index)
-        bar_positions = [idx + i * BAR_WIDTH for idx in grp_indices]
-
-        for ax, config in zip(axes, plot_configs):
-            ax.bar(
-                bar_positions,
-                grp[config["y_col"]],
-                width=BAR_WIDTH,
-                label=compiler_name,
-                color=color_map.get(compiler_name),
-            )
-
-    for ax, config in zip(axes, plot_configs):
-        ax.set_title(f"{config['title']} (Date: {latest_date})")
-        ax.set_xlabel("Circuit Name")
-        ax.set_ylabel(config["ylabel"])
-        ax.set_xticks(x_positions)
-        ax.set_xticklabels(circuit_names, rotation=75, ha="right")
-        ax.set_yscale("log")
-        ax.legend(title="Compiler")
-
-    plt.tight_layout()
-    print(f"Saving plot to {out_path}")
-    fig.savefig(out_path, dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    n_benchmarks = len(benchmarks)
+    ncols = 3
+    nrows = 2
+    
+    # Create separate figures for each metric
+    for config in plot_configs:
+        fig, axes = plt.subplots(nrows, ncols, figsize=(5 * ncols, 4 * nrows), squeeze=False)
+        axes = axes.flatten()
+        color_map = get_compiler_colormap()
+        
+        for i, ax in enumerate(axes):
+            if i < n_benchmarks:
+                benchmark = benchmarks[i]
+                sub = df[df["benchmark_id"] == benchmark]
+                
+                # Extract values for each compiler
+                values = []
+                compiler_names = []
+                for compiler in compilers:
+                    row = sub[sub["compiler"] == compiler]
+                    if not row.empty:
+                        values.append(row[config["y_col"]].values[0])
+                        compiler_names.append(compiler)
+                
+                # Create bars
+                x_positions = np.arange(len(compiler_names))
+                bars = ax.bar(
+                    x_positions,
+                    values,
+                    color=[color_map.get(compiler, "#4C72B0") for compiler in compiler_names],
+                    width=0.5,
+                )
+                
+                ax.set_xticks(x_positions)
+                ax.set_xticklabels(compiler_names, rotation=30, ha="right")
+                ax.set_title(f"Benchmark: {benchmark}")
+                ax.set_ylabel(config["ylabel"])
+                ax.set_yscale("log")
+            else:
+                ax.set_visible(False)
+        
+        plt.suptitle(f"{config['title']} (Date: {latest_date})", fontsize=16)
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        
+        # Save with metric-specific filename
+        metric_name = config["y_col"].replace("_", "-")
+        metric_out_path = out_path.parent / f"{out_path.stem}_{metric_name}{out_path.suffix}"
+        print(f"Saving plot to {metric_out_path}")
+        fig.savefig(metric_out_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
 
 
 def plot_compilation(
     df: pd.DataFrame, latest_date: str, out_path: Path, use_pdf: bool = False
 ):
     """Generates and saves plots for compilation benchmark data."""
+    df_comp = df.copy()
+    df_comp["compiled_ratio"] = df_comp["compiled_multiq_gates"] / df_comp["raw_multiq_gates"]
+    
     plot_configs = [
         {
             "y_col": "compile_time",
@@ -81,8 +100,83 @@ def plot_compilation(
             "title": "Gate Counts",
             "ylabel": "Compiled Gate Count",
         },
+        {
+            "y_col": "compiled_ratio",
+            "title": "Compiled Gate Ratio",
+            "ylabel": "Compiled Gates / Raw Gates",
+        },
     ]
-    generate_plot(df, plot_configs, latest_date, out_path, use_pdf)
+    generate_compilation_subplots(df_comp, plot_configs, latest_date, out_path, use_pdf)
+
+
+def generate_simulation_subplots(
+    df: pd.DataFrame,
+    plot_configs: list[dict],
+    latest_date: str,
+    out_path: Path,
+    use_pdf: bool = False,
+):
+    """Generate subplots for simulation benchmarks with separate subplot per benchmark."""
+    # Configure matplotlib for LaTeX output if PDF export is requested
+    if use_pdf:
+        plt.rcParams.update(
+            {
+                "text.usetex": True,  # for matching math & fonts (optional)
+                "font.family": "serif",
+            }
+        )
+
+    benchmarks = sorted(df["benchmark_id"].unique())
+    compilers = df["compiler"].unique()
+    n_benchmarks = len(benchmarks)
+    ncols = 3
+    nrows = 2
+    
+    # Create separate figures for each metric (like compilation plots)
+    for config in plot_configs:
+        fig, axes = plt.subplots(nrows, ncols, figsize=(5 * ncols, 4 * nrows), squeeze=False)
+        axes = axes.flatten()
+        color_map = get_compiler_colormap()
+        
+        for i, ax in enumerate(axes):
+            if i < n_benchmarks:
+                benchmark = benchmarks[i]
+                sub = df[df["benchmark_id"] == benchmark]
+                
+                # Extract values for each compiler
+                values = []
+                compiler_names = []
+                for compiler in compilers:
+                    row = sub[sub["compiler"] == compiler]
+                    if not row.empty:
+                        values.append(row[config["y_col"]].values[0])
+                        compiler_names.append(compiler)
+                
+                # Create bars
+                x_positions = np.arange(len(compiler_names))
+                bars = ax.bar(
+                    x_positions,
+                    values,
+                    color=[color_map.get(compiler, "#4C72B0") for compiler in compiler_names],
+                    width=0.5,
+                )
+                
+                ax.set_xticks(x_positions)
+                ax.set_xticklabels(compiler_names, rotation=30, ha="right")
+                ax.set_title(f"Benchmark: {benchmark}")
+                ax.set_ylabel(config["ylabel"])
+            else:
+                ax.set_visible(False)
+        
+        plt.suptitle(f"{config['title']} (Date: {latest_date})", fontsize=16)
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        
+        # Save with metric-specific filename
+        metric_name = config["y_col"].replace("_", "-")
+        metric_out_path = out_path.parent / f"{out_path.stem}_{metric_name}{out_path.suffix}"
+        print(f"Saving plot to {metric_out_path}")
+        fig.savefig(metric_out_path, dpi=300, bbox_inches="tight")
+        plt.close(fig)
 
 
 def plot_simulation(
@@ -109,7 +203,7 @@ def plot_simulation(
             "ylabel": "Absolute Relative Error",
         },
     ]
-    generate_plot(df_sim, plot_configs, latest_date, out_path, use_pdf)
+    generate_simulation_subplots(df_sim, plot_configs, latest_date, out_path, use_pdf)
 
 
 def main():
