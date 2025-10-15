@@ -67,7 +67,9 @@ def generate_compilation_subplots(
                 ax.set_xticklabels(compiler_names, rotation=30, ha="right")
                 ax.set_title(f"Benchmark: {benchmark}")
                 ax.set_ylabel(config["ylabel"])
-                ax.set_yscale("log")
+                # Use log scale only if specified in config (default to True for backwards compatibility)
+                if config.get("use_log_scale", True):
+                    ax.set_yscale("log")
             else:
                 ax.set_visible(False)
         
@@ -94,16 +96,19 @@ def plot_compilation(
             "y_col": "compile_time",
             "title": "Compiler Performance",
             "ylabel": "Compile Time (s)",
+            "use_log_scale": True,
         },
         {
             "y_col": "compiled_multiq_gates",
             "title": "Gate Counts",
             "ylabel": "Compiled Gate Count",
+            "use_log_scale": True,
         },
         {
             "y_col": "compiled_ratio",
             "title": "Compiled Gate Ratio",
             "ylabel": "Compiled Gates / Raw Gates",
+            "use_log_scale": False,
         },
     ]
     generate_compilation_subplots(df_comp, plot_configs, latest_date, out_path, use_pdf)
