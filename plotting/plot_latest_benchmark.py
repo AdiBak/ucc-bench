@@ -35,6 +35,13 @@ def generate_subplots(
     ncols = 3
     nrows = 2
 
+    # Ensure we don't have more benchmarks than subplots
+    if n_benchmarks > nrows * ncols:
+        raise ValueError(
+            f"Too many benchmarks ({n_benchmarks}) for fixed {nrows}x{ncols} grid. "
+            f"Maximum supported: {nrows * ncols}"
+        )
+
     # Create separate figures for each metric
     for config in plot_configs:
         fig, axes = plt.subplots(
@@ -49,13 +56,8 @@ def generate_subplots(
                 sub = df[df["benchmark_id"] == benchmark]
 
                 # Extract values for each compiler
-                values = []
-                compiler_names = []
-                for compiler in compilers:
-                    row = sub[sub["compiler"] == compiler]
-                    if not row.empty:
-                        values.append(row[config["y_col"]].values[0])
-                        compiler_names.append(compiler)
+                values = sub[config["y_col"]].values
+                compiler_names = sub["compiler"].values
 
                 # Create bars
                 x_positions = np.arange(len(compiler_names))
@@ -76,6 +78,7 @@ def generate_subplots(
                 # Use log scale only if specified in config (default to True for backwards compatibility)
                 if config.get("use_log_scale", True):
                     ax.set_yscale("log")
+
             else:
                 ax.set_visible(False)
 
@@ -90,17 +93,6 @@ def generate_subplots(
         print(f"Saving plot to {metric_out_path}")
         fig.savefig(metric_out_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
-
-
-def generate_compilation_subplots(
-    df: pd.DataFrame,
-    plot_configs: list[dict],
-    latest_date: str,
-    out_path: Path,
-    use_pdf: bool = False,
-):
-    """Generate subplots for compilation benchmarks with separate subplot per benchmark."""
-    generate_subplots(df, plot_configs, latest_date, out_path, use_pdf)
 
 
 def plot_compilation(
@@ -122,7 +114,7 @@ def plot_compilation(
         {
             "y_col": "compiled_multiq_gates",
             "title": "Gate Counts",
-            "ylabel": "Compiled Gate Count",
+            "ylabel": "Compiled Multi-Qubit Gate Count",
             "use_log_scale": True,
         },
         {
@@ -132,18 +124,7 @@ def plot_compilation(
             "use_log_scale": False,
         },
     ]
-    generate_compilation_subplots(df_comp, plot_configs, latest_date, out_path, use_pdf)
-
-
-def generate_simulation_subplots(
-    df: pd.DataFrame,
-    plot_configs: list[dict],
-    latest_date: str,
-    out_path: Path,
-    use_pdf: bool = False,
-):
-    """Generate subplots for simulation benchmarks with separate subplot per benchmark."""
-    generate_subplots(df, plot_configs, latest_date, out_path, use_pdf)
+    generate_subplots(df_comp, plot_configs, latest_date, out_path, use_pdf)
 
 
 def plot_simulation(
@@ -170,7 +151,7 @@ def plot_simulation(
             "ylabel": "Absolute Relative Error",
         },
     ]
-    generate_simulation_subplots(df_sim, plot_configs, latest_date, out_path, use_pdf)
+    generate_subplots(df_sim, plot_configs, latest_date, out_path, use_pdf)
 
 
 def main():
