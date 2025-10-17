@@ -8,6 +8,7 @@ from ucc_bench.results import SuiteResultsDatabase, to_df_timing, to_df_simulati
 
 from shared import calculate_abs_relative_error, get_compiler_colormap
 
+
 def generate_subplots(
     df: pd.DataFrame,
     plot_configs: list[dict],
@@ -16,7 +17,7 @@ def generate_subplots(
     use_pdf: bool = False,
 ):
     """Generate subplots with separate subplot per benchmark.
-    
+
     Generic function for creating subplot layouts for both compilation and simulation benchmarks.
     """
     # Configure matplotlib for LaTeX output if PDF export is requested
@@ -33,18 +34,20 @@ def generate_subplots(
     n_benchmarks = len(benchmarks)
     ncols = 3
     nrows = 2
-    
+
     # Create separate figures for each metric
     for config in plot_configs:
-        fig, axes = plt.subplots(nrows, ncols, figsize=(5 * ncols, 4 * nrows), squeeze=False)
+        fig, axes = plt.subplots(
+            nrows, ncols, figsize=(5 * ncols, 4 * nrows), squeeze=False
+        )
         axes = axes.flatten()
         color_map = get_compiler_colormap()
-        
+
         for i, ax in enumerate(axes):
             if i < n_benchmarks:
                 benchmark = benchmarks[i]
                 sub = df[df["benchmark_id"] == benchmark]
-                
+
                 # Extract values for each compiler
                 values = []
                 compiler_names = []
@@ -53,16 +56,19 @@ def generate_subplots(
                     if not row.empty:
                         values.append(row[config["y_col"]].values[0])
                         compiler_names.append(compiler)
-                
+
                 # Create bars
                 x_positions = np.arange(len(compiler_names))
                 ax.bar(
                     x_positions,
                     values,
-                    color=[color_map.get(compiler, "#4C72B0") for compiler in compiler_names],
+                    color=[
+                        color_map.get(compiler, "#4C72B0")
+                        for compiler in compiler_names
+                    ],
                     width=0.5,
                 )
-                
+
                 ax.set_xticks(x_positions)
                 ax.set_xticklabels(compiler_names, rotation=30, ha="right")
                 ax.set_title(f"Benchmark: {benchmark}")
@@ -72,13 +78,15 @@ def generate_subplots(
                     ax.set_yscale("log")
             else:
                 ax.set_visible(False)
-        
+
         plt.suptitle(f"{config['title']} (Date: {latest_date})", fontsize=16)
         plt.tight_layout(rect=[0, 0, 1, 0.96])
-        
+
         # Save with metric-specific filename
         metric_name = config["y_col"].replace("_", "-")
-        metric_out_path = out_path.parent / f"{out_path.stem}_{metric_name}{out_path.suffix}"
+        metric_out_path = (
+            out_path.parent / f"{out_path.stem}_{metric_name}{out_path.suffix}"
+        )
         print(f"Saving plot to {metric_out_path}")
         fig.savefig(metric_out_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
@@ -100,8 +108,10 @@ def plot_compilation(
 ):
     """Generates and saves plots for compilation benchmark data."""
     df_comp = df.copy()
-    df_comp["compiled_ratio"] = df_comp["compiled_multiq_gates"] / df_comp["raw_multiq_gates"]
-    
+    df_comp["compiled_ratio"] = (
+        df_comp["compiled_multiq_gates"] / df_comp["raw_multiq_gates"]
+    )
+
     plot_configs = [
         {
             "y_col": "compile_time",
